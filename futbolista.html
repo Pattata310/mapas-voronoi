@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualizador de Futbolista</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    input {
+      margin: 10px;
+      padding: 5px;
+    }
+
+    #figure {
+      margin: 30px auto;
+      position: relative;
+      width: 200px;
+    }
+
+    .part {
+      background-color: #4CAF50;
+      margin: 0 auto;
+      border-radius: 10px;
+    }
+
+    #head {
+      width: 20%;
+      padding-top: 20%;
+      border-radius: 50%;
+      background-color: #4CAF50;
+    }
+
+    #torso {
+      width: 40%;
+      height: 100px;
+    }
+
+    #legs {
+      width: 30%;
+      height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Visualizador de Cuerpo de Futbolista</h2>
+
+  <label for="height">Altura (cm):</label>
+  <input type="number" id="height" value="194"><br>
+
+  <label for="weight">Peso (kg):</label>
+  <input type="number" id="weight" value="100"><br>
+
+  <button onclick="drawFigure()">Mostrar Figura</button>
+
+  <div id="figure">
+    <!-- Se dibujará aquí la figura -->
+  </div>
+
+  <script>
+    function drawFigure() {
+      const height = parseInt(document.getElementById('height').value);
+      const weight = parseInt(document.getElementById('weight').value);
+      const figure = document.getElementById('figure');
+      figure.innerHTML = ''; // Limpiar figura previa
+
+      // Escalamos la altura total a un máximo de 300px visuales
+      const maxDisplayHeight = 300;
+      const scale = height / 200; // Base de 200 cm
+      const displayHeight = maxDisplayHeight * (height / 200);
+
+      // Escalamos el ancho proporcional al peso
+      const baseWeight = 80; // referencia
+      const widthScale = Math.min(1.5, weight / baseWeight); // limitar a x1.5
+
+      // Cabeza
+      const head = document.createElement('div');
+      head.id = 'head';
+      head.className = 'part';
+      head.style.width = (40 * widthScale) + 'px';
+      head.style.height = (40 * widthScale) + 'px';
+
+      // Torso
+      const torso = document.createElement('div');
+      torso.id = 'torso';
+      torso.className = 'part';
+      torso.style.width = (80 * widthScale) + 'px';
+      torso.style.height = (displayHeight * 0.4) + 'px';
+
+      // Piernas
+      const legs = document.createElement('div');
+      legs.id = 'legs';
+      legs.className = 'part';
+      legs.style.width = (60 * widthScale) + 'px';
+      legs.style.height = (displayHeight * 0.4) + 'px';
+
+      // Mostrar figura
+      figure.appendChild(head);
+      figure.appendChild(torso);
+      figure.appendChild(legs);
+    }
+
+    // Mostrar figura inicial
+    drawFigure();
+  </script>
+</body>
+</html>

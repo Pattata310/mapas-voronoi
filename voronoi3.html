@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Voronoi Fútbol Vertical</title>
+
+<style>
+body{
+  margin:0;
+  background:#0b6623;
+}
+svg{
+  width:100vw;
+  height:100vh;
+  display:block;
+}
+.field{
+  stroke:white;
+  fill:none;
+  stroke-width:2;
+}
+.cell{
+  stroke:white;
+  stroke-opacity:.5;
+  fill-opacity:.3;
+}
+.player{
+  stroke:black;
+  stroke-width:1;
+  cursor:grab;
+}
+.player:active{ cursor:grabbing; }
+.label{
+  fill:white;
+  font-size:13px;
+  font-weight:bold;
+  text-anchor:middle;
+  dominant-baseline:middle;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+<svg id="campo"></svg>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const width = window.innerWidth;
+const height = window.innerHeight;
+const margin = 20;
+const centroX = width / 2;
+const centroY = height / 2;
+
+const svg = d3.select("#campo")
+  .attr("viewBox", `0 0 ${width} ${height}`);
+
+/* ================= CAMPO VERTICAL ================= */
+function dibujarCampo(){
+
+const campoAncho = width - margin * 2;
+const campoAlto = height - margin * 2;
+
+// --- NUEVA SECCIÓN: IMAGEN DE FONDO ---
+  const mitadCampo = campoAlto / 2;
+
+/* Imagen inferior (normal) */
+svg.append("image")
+  .attr("xlink:href", "campo_zonas_2.png")
+  .attr("x", margin)
+  .attr("y", margin + mitadCampo)
+  .attr("width", campoAncho)
+  .attr("height", mitadCampo)
+  .attr("preserveAspectRatio", "none")
+  .attr("opacity", 0.6);
+
+/* Imagen superior (rotada 180°) */
+svg.append("image")
+  .attr("xlink:href", "campo_zonas_2.png")
+  .attr("x", margin)
+  .attr("y", margin)
+  .attr("width", campoAncho)
+  .attr("height", mitadCampo)
+  .attr("preserveAspectRatio", "none")
+  .attr("opacity", 0.6)
+  .attr(
+    "transform",
+    `rotate(180 ${centroX} ${margin + mitadCampo / 2})`
+  );
+
+
+/* Campo */
+svg.append("rect")
+  .attr("x", margin)
+  .attr("y", margin)
+  .attr("width", campoAncho)
+  .attr("height", campoAlto)
+  .attr("class","field");
+
+/* Línea central */
+svg.append("line")
+  .attr("x1", margin)
+  .attr("x2", width - margin)
+  .attr("y1", centroY)
+  .attr("y2", centroY)
+  .attr("class","field");
+
+/* Círculo central */
+svg.append("circle")
+  .attr("cx", centroX)
+  .attr("cy", centroY)
+  .attr("r", 60)
+  .attr("class","field");
+
+/* Punto central */
+svg.append("circle")
+  .attr("cx", centroX)
+  .attr("cy", centroY)
+  .attr("r", 2)
+  .attr("fill","white");
+
+/* Áreas grandes */
+const areaAncha = 320;
+const areaAlta = 120;
+
+/* Área superior */
+svg.append("rect")
+  .attr("x", centroX - areaAncha/2)
+  .attr("y", margin)
+  .attr("width", areaAncha)
+  .attr("height", areaAlta)
+  .attr("class","field");
+
+/* Área inferior */
+svg.append("rect")
+  .attr("x", centroX - areaAncha/2)
+  .attr("y", height - margin - areaAlta)
+  .attr("width", areaAncha)
+  .attr("height", areaAlta)
+  .attr("class","field");
+
+/* Áreas chicas */
+const chicaAncha = 160;
+const chicaAlta = 40;
+
+svg.append("rect")
+  .attr("x", centroX - chicaAncha/2)
+  .attr("y", margin)
+  .attr("width", chicaAncha)
+  .attr("height", chicaAlta)
+  .attr("class","field");
+
+svg.append("rect")
+  .attr("x", centroX - chicaAncha/2)
+  .attr("y", height - margin - chicaAlta)
+  .attr("width", chicaAncha)
+  .attr("height", chicaAlta)
+  .attr("class","field");
+
+/* Puntos penales */
+svg.append("circle")
+  .attr("cx", centroX)
+  .attr("cy", margin + 90)
+  .attr("r", 2)
+  .attr("fill","white");
+
+svg.append("circle")
+  .attr("cx", centroX)
+  .attr("cy", height - margin - 90)
+  .attr("r", 2)
+  .attr("fill","white");
+
+/* Semicírculos */
+svg.append("path")
+  .attr("d", d3.arc()({
+    innerRadius:59,
+    outerRadius:60,
+    startAngle:Math.PI*0.67,
+    endAngle:Math.PI*1.33
+  }))
+  .attr("transform",`translate(${centroX},${margin+90})`)
+  .attr("class","field");
+
+svg.append("path")
+  .attr("d", d3.arc()({
+    innerRadius:59,
+    outerRadius:60,
+    startAngle:Math.PI*-0.33,
+    endAngle:Math.PI*0.33
+  }))
+  .attr("transform",`translate(${centroX},${height-margin-90})`)
+  .attr("class","field");
+}
+
+dibujarCampo();
+
+/* ================= JUGADORES ================= */
+const jugadores = [];
+
+/* Equipo A (arriba → abajo) */
+const formA = [
+  [centroX, margin+30],
+  [centroX-220, margin+100],//lateral der
+  [centroX-60, margin+100],//central der
+  [centroX+60, margin+100],//central izq
+  [centroX+220, margin+100],//lateral izq
+  [centroX-80, margin+190],//mcd der
+  [centroX +0, margin+250],//mco central
+  [centroX+80, margin+170],//mcd izq
+  [centroX-100, centroY-120],//mco der
+  [centroX+100, centroY-120],//mco izq
+  [centroX, centroY-30],//delantero
+];
+
+const nombresA = [
+["portero",1],["lateral der",2],["central der",5],["central izq",4],["lateral izq",3],
+["mcd der",6],["mco central",10],["mcd izq",8],["mco der",11],["mco izq",7],["delantero",9]
+];
+
+formA.forEach((p,i)=>{
+  jugadores.push({x:p[0],y:p[1],equipo:"A",numero:nombresA[i][1],nombre:nombresA[i][0]});
+});
+
+/* Equipo B (abajo → arriba) */
+const formB = [
+  [centroX, height-margin-30],//portero
+  [centroX-250, height-margin-460],//lateral izq
+  [centroX-60, height-margin-340],//central izq
+  [centroX+60, height-margin-380],//central der
+  [centroX+250, height-margin-460],//lateral der
+  [centroX-90, height-margin-470],// mc izq 6  
+  [centroX+0, height-margin-420],// mcd 8
+  [centroX+90, height-margin-470],// mc der 10
+  [centroX-250, centroY-240],// extremo izq 7
+  [centroX+0, centroY-240],// delantero 9
+  [centroX+200, centroY-250],// extremo der 11
+];
+
+const nombresB = [
+["portero",1],["lateral izq",2],["central izq",5],["central der",4],["lateral der",3],
+["mc izq",6],["mcd",8],["mc der",10],["extremo izq",7],["delantero ",9],["extremo der",11]
+];
+
+formB.forEach((p,i)=>{
+  jugadores.push({x:p[0],y:p[1],equipo:"B",numero:nombresB[i][1],nombre:nombresB[i][0]});
+});
+
+const colores = { A:"#003087", B:"#AAAAAA" };
+
+const voronoiGroup = svg.append("g");
+const playerGroup = svg.append("g");
+const labelGroup = svg.append("g");
+
+/* ================= VORONOI ================= */
+function actualizarVoronoi(){
+  const puntos = jugadores.map(j=>[j.x,j.y]);
+  const delaunay = d3.Delaunay.from(puntos);
+  const voronoi = delaunay.voronoi([margin,margin,width-margin,height-margin]);
+
+  voronoiGroup.selectAll("path")
+    .data(puntos)
+    .join("path")
+    .attr("class","cell")
+    .attr("d",(_,i)=>voronoi.renderCell(i))
+    .attr("fill",(_,i)=>colores[jugadores[i].equipo]);
+}
+
+/* ================= JUGADORES ================= */
+const drag = d3.drag().on("drag",(e,d)=>{
+  d.x = Math.max(margin,Math.min(width-margin,e.x));
+  d.y = Math.max(margin,Math.min(height-margin,e.y));
+  d3.select(e.sourceEvent.target).attr("cx",d.x).attr("cy",d.y);
+  actualizar();
+});
+
+function actualizar(){
+  playerGroup.selectAll("circle")
+    .data(jugadores)
+    .join("circle")
+    .attr("r",20)
+    .attr("cx",d=>d.x)
+    .attr("cy",d=>d.y)
+    .attr("fill",d=>colores[d.equipo])
+    .attr("class","player")
+    .call(drag);
+
+  labelGroup.selectAll("text")
+    .data(jugadores)
+    .join("text")
+    .attr("x",d=>d.x)
+    .attr("y",d=>d.y-15)
+    .attr("class","label")
+    .text(d=>`${d.numero} ${d.nombre}`);
+
+  actualizarVoronoi();
+}
+
+actualizar();
+</script>
+</body>
+</html>
